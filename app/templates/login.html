@@ -1,0 +1,95 @@
+
+% extends "base.html" %}
+
+{% block sidebar %}
+<div id="sidebar-wrapper">
+    <ul class="sidebar-nav">
+        <li class="sidebar-brand">
+            <a href="#" class="disabled">Top Tags</a>
+        </li>
+        {%- if tags -%}
+          {%- for tag in tags -%}
+            <li><a href="{{ url_for('posts_by_tag', tag=tag.key.id()) }}">{{ tag.key.id() }}</a></li>
+          {%- endfor -%}
+        {%- endif -%}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+            {%- if posts -%}
+              {%- for post in posts -%}
+                <div class="post-preview">
+                    <a href="{{ url_for('single_post', slug=post.key.id()) }}">
+                       <h2 class="post-title">{{ post.Title | safe }}</h2>
+                       <h3 class="post-subtitle">{{post.Description[:50] + "..."}}</h3>
+                    </a>
+                  <p class="post-meta">Posted by {{post.Author}} on {{post.created | pretty_date }}</p>
+                </div>
+                <hr>
+              {%- endfor -%}
+            {%- endif -%}
+
+            <!-- Pager -->
+            <ul class="pager">
+                {%- if pag.next_page != -1 -%}
+                  <li class="next"><a href="{{ url_for_other_page(pag.next_page) }}">Older Posts &rarr;</a></li>
+                {%- endif -%}
+                {%- if pag.prev_page != -1 -%}
+                  <li class="previous"><a href="{{ url_for_other_page(pag.prev_page) }}">&larr; Newer Posts</a></li>
+                {%- endif -%}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <meta name="google-signin-client_id" content="308411029587-8ekk3s4tjjmh41um6nrl73bq8v0g4mhe.apps.googleusercontent.com">
+
+    <title>Signin Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="signin.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+    <br>
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <hr>
+    <a href="#" onclick="signOut();">Sign out</a>
+  </body>
+
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <script>
+  function onSignIn(googleUser) {
+      var profile = googleUser.getBasicProfile();
+      console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+      console.log('Name: ' + profile.getName());
+      console.log('Image URL: ' + profile.getImageUrl());
+      console.log('Email: ' + profile.getEmail());
+    }
+  function signOut() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.signOut().then(function () {
+      console.log('User signed out.');
+    });
+  }
+  </script>
+
+</html>

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    <div class="container">
+      <h2>{{post.Title}}</h2>
+      <hr>
+      <p id="description">{{post.Description}}</p>
+      <p id="content">{{post.Post}}</p>
+      &nbsp;
+
+      <hr>
+      <h4>Comments</h4>
+      <hr>
+      {%- if comments -%}
+        {%- for comment in comments -%}
+          <div class="post-preview" id="marked_comment">
+             <blockquote class="post-subtitle">{{ comment.Comment | safe }}</blockquote>
+             <p2 class="post-meta">Posted by {{comment.Name}} on {{comment.created | pretty_date }}</p2>
+          </div>
+          <hr>
+        {%- endfor -%}
+      {%- endif -%}
+
+    </div>
+    <hr>
+
+    <div class="container">
+      <div class="row">
+
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+              <li><p class="navbar-text">Leave a comment...</p></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown"><b>Login</b> <span class="caret"></span></a>
+                  <ul id="login-dp" class="dropdown-menu">
+                	   <li>
+                	      <div class="row">
+                	         <div class="col-md-12">
+                             Login via
+                              <div class="social-buttons">
+                				        <a href="#" class="btn btn-fb"><i class="fa fa-google"></i> Google</a>
+                								<a href="#" class="btn btn-tw"><i class="fa fa-github"></i> Twitter</a>
+                							</div>
+                						</div>
+              							<div class="bottom text-center">
+              								Comment as a Guest
+              							</div>
+                	      </div>
+                      </li>
+                    </ul>
+                </li>
+            </ul>
+          </div>
+
+          <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+              <form name="newComment" method="post" action="{{url_for('single_post', slug=post.key.id())}}" enctype="application/x-www-form-urlencoded" >
+                  {{ commentform.hidden_tag() }}
+                  <div class="row control-group">
+                      <div class="form-group col-xs-12 floating-label-form-group controls">
+                          <label>{{commentform.name.label}}</label>
+                          {{commentform.name(class="form-control",placeholder="Name")}}
+                          <p class="help-block text-danger"></p>
+                      </div>
+                  </div>
+                  <div class="row control-group">
+                      <div class="form-group col-xs-12 floating-label-form-group controls">
+                          <label>{{commentform.email.label}}</label>
+                          {{commentform.email(class="form-control",placeholder="email")}}
+                          <p class="help-block text-danger"></p>
+                      </div>
+                  </div>
+                  <div class="row control-group">
+                      <div class="form-group col-xs-12 floating-label-form-group controls">
+                          <label>{{commentform.comment.label}}</label>
+                          {{commentform.comment(class="form-control", rows="5", id="commentarea", placeholder="comment")}}
+                          <p class="help-block text-danger"></p>
+                      </div>
+                  </div>
+                  <br>
+                  <div id="success"></div>
+                  <div class="row">
+                    <div class="form-group col-xs-12 floating-label-form-group controls">
+                        {% for error in commentform.recaptcha.errors %}
+                            {{ error }}
+                        {% endfor %}
+                        {{ commentform.recaptcha }}
+                        <p class="help-block text-danger"></p>
+                    </div>
+                  </div>
+                  <br>
+                  <div class="row">
+                      <div class="form-group col-xs-12">
+                          <button type="submit" class="btn btn-default">Post</button>
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+    </div>
+
+
+    <!-- render markdown content -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+
+    <script src="//cdn.tinymce.com/4/tinymce.min.js"></script>
+
+    <script src="//cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+
+    <script>
+    content = document.getElementById('content').textContent;
+    document.getElementById('content').innerHTML = marked(content);
+    description = document.getElementById('description').textContent;
+    document.getElementById('description').innerHTML = marked(description);
+    </script>
+
+    <script type="text/javascript">
+    tinyMCE.init({
+        selector: '#commentarea'
+    });
+</script>
+
+{%- endblock -%}
