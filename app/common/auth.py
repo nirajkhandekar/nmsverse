@@ -5,6 +5,9 @@ import logging
 
 
 class OAuthSignIn(object):
+    """
+         factory class to initialize provider based on name.
+    """
     providers = None
 
     def __init__(self, provider_name):
@@ -13,7 +16,6 @@ class OAuthSignIn(object):
         self.consumer_id = credentials['id']
         self.consumer_secret = credentials['secret']
 
-
     def authorize(self):
         pass
 
@@ -21,7 +23,7 @@ class OAuthSignIn(object):
         pass
 
     def get_callback_url(self):
-        return url_for('ouath_callback', provider=self.provider_name, _external=True)
+        return url_for('oauth_callback', provider=self.provider_name, _external=True)
 
     @classmethod
     def get_provider(self, provider_name):

@@ -1,30 +1,71 @@
 from app.app import app, login_manager
+from app.common.auth import OAuthSignIn
 from app.common.pagination import Pagination
 from app.common.testdata import create_posts
 from app.forms.comment import CommentForm
 from app.forms.post import PostForm
+from app.models.explorer import ExplorerModel
 from app.models.comment import CommentModel
 from app.models.post import PostModel
 from app.models.tag import TagModel
 from flask import render_template, redirect, url_for, request
-from google.appengine.ext import ndb
-from google.appengine.api import users
 from flask.ext.login import login_user, logout_user, current_user, login_required
-from app.common.auth import OAuthSignIn
+from google.appengine.ext import ndb
 import logging
 
 
 ##################### OAUTH Related funcs ###############
-@app.route('/authorize/<provider')
+@app.route('/authorize/<provider>')
 def oauth_authorize(provider):
-    if not current_user.is_anonymous():
+    if not current_user.is_anonymous:
         return redirect(url_for('index'))
-    ouath = O
+    oauth = OAuthSignIn.get_provider(provider)
+    return oauth.authorize()
 
+@app.route('/callback/<provider>')
+def oauth_callback(provider):
+    if not current_user.is_anonymous:
+        return redirect(url_for('index'))
+    oauth = OAuthSignIn.get_provider(provider)
+    username, email = oauth.callback()
+    if email is None:
+        # I need a valid email address for my user identification
+        logging.error('Authentication Failed')
+        flash('Authentication failed.')
+        return redirect(url_for('index'))
+    # Look if the user already exists
+    explorer = ExplorerModel.get_user_by_email(email)
+    #user=User.query.filter_by(email=email).first()
+    if not explorer:
+        displayname = username
+        if displayname is None or displayname == "":
+            displayname = email.split('@')[0]
+
+        # We can do more work here to ensure a unique nickname, if you
+        # require that.
+        explorer = ExplorerModel(Email=email, DisplayName=displayname)
+        explorer.put()
+    # Log in the user, by default remembering them for their next visit
+    # unless they log out.
+    login_user(explorer, remember=True)
+    return redirect(url_for('index'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user and current_user.is_authenticated:
+        return redirect(url_for('index'))
+    return render_template('login.html', title='Sign In')
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 def render_page_or_error(template_name, context={}, error=None):
     """ helper function for routing to error page """
     if context:
+        context.update({'user':current_user})
         return render_template(template_name, **context)
     else:
         return render_template('error404.html', error=error)
@@ -60,7 +101,7 @@ def _explorerInfo(base='/'):
 def index(page):
     """ home page endpoint """
     context = _get_index_context(page, PostModel.get_posts_query())
-    context.update( _explorerInfo(url_for('index',page=page)) )
+    #context.update( _explorerInfo(url_for('index',page=page)) )
     #logging.error( context )
     return render_page_or_error('index.html', context)
 
@@ -105,9 +146,9 @@ def error404():
     return render_template('error404.html')
 
 ################### Login endpoint ####################
-@app.route('/login')
-def login():
-    return render_template('login.html')
+# @app.route('/login')
+# def login():
+#     return render_template('login.html')
 
 ################# post editor endpoint ################
 @app.route('/posteditor', methods = ['GET', 'POST'])
